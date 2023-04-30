@@ -2,9 +2,10 @@ import krpc, time
 
 HEIGHT = 200
 # Proportional, Integral, Derivative
-KP = 0.06
-KI = 0.0001
-KD = 0.5
+KP = 0.065
+KI = 0.0015
+KD = .1
+DELTA_T = 0.1
 
 
 class PIDController:
@@ -22,12 +23,12 @@ class PIDController:
         self.intergral = 0
         self.last_error = 0
 
-    def step(self, current: float) -> float:
+    def step(self, current: float, dt: float) -> float:
         error = self.target - current
 
         p = self.kp * error
-        i = self.ki * self.intergral
-        d = self.kd * (error - self.last_error)
+        i = self.ki * self.intergral * dt
+        d = self.kd * (error - self.last_error) / dt
 
         self.intergral += error
         self.last_error = error
@@ -50,14 +51,18 @@ def main():
         ki=KI,
         kd=KD,
     )
-    vessel.control.activate_next_stage()
     # We don't aim to control any other vars, only height
-    vessel.control.sas_mode = vessel.control.sas_mode.stability_assist
+    vessel.control.sas_mode = vessel.control.sas_mode.radial
+    
+    input("Press enter to start.")
+    vessel.control.activate_next_stage()
+
     while True:
         flight = vessel.flight()
         alt = flight.surface_altitude
         throttle = controller.step(
             current=alt,
+            dt=DELTA_T
         )
         vessel.control.throttle = throttle
         print(
@@ -66,7 +71,7 @@ def main():
                 throttle=throttle,
             )
         )
-        time.sleep(0.1)
+        time.sleep(DELTA_T)
 
 if __name__ == "__main__":
     main()
