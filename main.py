@@ -54,7 +54,7 @@ def main():
     # We don't aim to control any other vars, only height
     vessel.control.sas_mode = vessel.control.sas_mode.radial
     
-    input("Press enter to start.")
+    input("Press enter to launch.")
     vessel.control.activate_next_stage()
 
     while True:
